@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'pranjalkr47@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && 
+        request.resource.data.uid == userId &&
+        request.resource.data.walletBalance == 0;
+      allow update: if isAdmin() || (
+        isOwner(userId) && (
+          // Update profile fields
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'theme', 'avatar']) ||
+          // Atomic wallet deduction for purchase (user can ONLY reduce or keep same, never increase)
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletBalance']) &&
+            request.resource.data.walletBalance is number &&
+            request.resource.data.walletBalance >= 0 &&
+            request.resource.data.walletBalance <= resource.data.walletBalance
+          )
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Products catalog
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Orders collection
+    match /orders/{orderId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.price is number &&
+        request.resource.data.price >= 0;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Wallet top-up requests
+    match /walletRequests/{requestId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount > 0 &&
+        request.resource.data.utr is string &&
+        request.resource.data.utr.size() >= 4;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Transactions ledger
+    match /transactions/{transactionId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // Wishlist per user
+    match /wishlists/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // App settings (banners, payment QR, store config)
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Authorized Admins
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

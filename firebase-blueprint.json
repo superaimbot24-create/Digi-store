@@ -1,0 +1,154 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with wallet balance and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 200 },
+        "walletBalance": { "type": "number" },
+        "theme": { "type": "string", "enum": ["dark", "light"] },
+        "avatar": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "walletBalance"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Digital tools and license products for sale",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "imageUrl": { "type": "string", "maxLength": 1000 },
+        "originalPrice": { "type": "number" },
+        "discountedPrice": { "type": "number" },
+        "category": { "type": "string", "maxLength": 50 },
+        "active": { "type": "boolean" },
+        "features": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "description", "imageUrl", "originalPrice", "discountedPrice", "category", "active"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Digital tool purchase records",
+      "type": "object",
+      "properties": {
+        "orderId": { "type": "string", "maxLength": 64 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "userEmail": { "type": "string", "maxLength": 200 },
+        "productId": { "type": "string", "maxLength": 128 },
+        "productTitle": { "type": "string", "maxLength": 150 },
+        "productImage": { "type": "string", "maxLength": 1000 },
+        "price": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "deliveryUrl": { "type": "string", "maxLength": 1000 },
+        "rejectReason": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "productId", "productTitle", "price", "status"]
+    },
+    "WalletRequest": {
+      "title": "WalletRequest",
+      "description": "Add money payment deposit verification request with UTR",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "userEmail": { "type": "string", "maxLength": 200 },
+        "amount": { "type": "number" },
+        "utr": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "notes": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "amount", "utr", "status"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial ledger record of wallet credits and debits",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["credit", "debit", "refund"] },
+        "description": { "type": "string", "maxLength": 255 },
+        "status": { "type": "string", "enum": ["completed", "failed"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "amount", "type", "status"]
+    },
+    "Wishlist": {
+      "title": "Wishlist",
+      "description": "User saved favorite products list",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "productIds": { "type": "string", "maxLength": 2000 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId"]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "Store banners, payment QR, and policies settings",
+      "type": "object",
+      "properties": {
+        "banner": { "type": "string", "maxLength": 3000 },
+        "paymentQR": { "type": "string", "maxLength": 3000 },
+        "storeDetails": { "type": "string", "maxLength": 3000 },
+        "policies": { "type": "string", "maxLength": 5000 },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Whitelisted administrator credentials",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "maxLength": 200 },
+        "role": { "type": "string", "enum": ["admin", "superadmin"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and wallet balances"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Digital products catalog"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer purchase orders and delivery details"
+    },
+    "/walletRequests/{requestId}": {
+      "schema": "WalletRequest",
+      "description": "Deposit requests with UTR number for admin verification"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Wallet transaction history"
+    },
+    "/wishlists/{userId}": {
+      "schema": "Wishlist",
+      "description": "User wishlist document"
+    },
+    "/settings/{settingId}": {
+      "schema": "Setting",
+      "description": "Global application configuration"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Authorized administrators collection"
+    }
+  }
+}

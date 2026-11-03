@@ -1,0 +1,6 @@
+{
+  "name": "Digi Store – Advanced Digital Marketplace",
+  "description": "Professional digital marketplace featuring separate customer and administrator web applications with dynamic product catalog, wallet payment system, and order delivery management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

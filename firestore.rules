@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'pranjalkr47@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Products catalog: Anyone can view active tools, only admin can manage
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // App global settings: Anyone can view banners & payment QR, admin can update
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // User profiles & wallets
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // Customer orders
+    match /orders/{orderId} {
+      allow read, write: if true;
+    }
+
+    // Wallet deposit requests (UTR)
+    match /walletRequests/{requestId} {
+      allow read, write: if true;
+    }
+
+    // Financial transaction ledger
+    match /transactions/{transactionId} {
+      allow read, write: if true;
+    }
+
+    // User wishlists
+    match /wishlists/{userId} {
+      allow read, write: if true;
+    }
+
+    // Administrators registry
+    match /admins/{adminId} {
+      allow read, write: if true;
+    }
+  }
+}
